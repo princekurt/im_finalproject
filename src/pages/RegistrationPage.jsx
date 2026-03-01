@@ -3,16 +3,17 @@ import { ClipboardSignature, UserPlus } from 'lucide-react'
 import { Button } from '../components/Button.jsx'
 import { Card, CardBody, CardHeader } from '../components/Card.jsx'
 import { FieldLabel, SelectField, TextField } from '../components/Field.jsx'
-import { MEMBERSHIP_TIERS } from '../data/members.js'
+import { MEMBERSHIP_TYPES } from '../data/members.js' // Changed to match your new list name
 
 export function RegistrationPage() {
-  const tiers = useMemo(() => MEMBERSHIP_TIERS, [])
+  // Reference the new Membership Types list
+  const types = useMemo(() => MEMBERSHIP_TYPES, [])
 
   const [form, setForm] = useState({
     name: '',
     contact: '',
     phone: '',
-    tier: 'Standard',
+    membershipType: 'Whole Gym Access', // Changed key from 'tier'
     startDate: '',
     endDate: '',
   })
@@ -23,7 +24,7 @@ export function RegistrationPage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-sm font-black tracking-tight text-zinc-100">New Member Registration</div>
+              <div className="text-sm font-black tracking-tight text-zinc-100 uppercase">New Member Registration</div>
               <div className="mt-1 text-xs text-zinc-500">
                 Rugged intake form for staff. UI-only with TODO hooks.
               </div>
@@ -38,7 +39,8 @@ export function RegistrationPage() {
             className="space-y-5"
             onSubmit={(e) => {
               e.preventDefault()
-              // TODO: Group will implement Save Member here.
+              console.log('Form Submitted:', form)
+              // TODO: Group will implement Save Member to Database here.
             }}
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -67,12 +69,12 @@ export function RegistrationPage() {
                 />
               </div>
               <div className="space-y-2">
-                <FieldLabel>MEMBERSHIP TIER</FieldLabel>
+                <FieldLabel>MEMBERSHIP TYPE</FieldLabel>
                 <SelectField
-                  value={form.tier}
-                  onChange={(e) => setForm((s) => ({ ...s, tier: e.target.value }))}
+                  value={form.membershipType}
+                  onChange={(e) => setForm((s) => ({ ...s, membershipType: e.target.value }))}
                 >
-                  {tiers.map((t) => (
+                  {types.map((t) => (
                     <option key={t.value} value={t.value}>
                       {t.label}
                     </option>
@@ -97,9 +99,9 @@ export function RegistrationPage() {
               </div>
             </div>
 
-            <div className="flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="text-xs text-zinc-600">
-                By saving, you confirm staff verified ID and waiver status.
+            <div className="flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-between border-t border-white/5 pt-5">
+              <div className="text-[10px] uppercase font-bold text-zinc-600">
+                Staff Verification Required: ID + Waiver Status.
               </div>
               <div className="flex items-center gap-3">
                 <Button type="button" variant="ghost" onClick={() => setForm((s) => ({ ...s, name: '', contact: '', phone: '' }))}>
@@ -117,26 +119,26 @@ export function RegistrationPage() {
 
       <Card>
         <CardHeader>
-          <div className="text-sm font-black tracking-tight text-zinc-100">Registration Checklist</div>
+          <div className="text-sm font-black tracking-tight text-zinc-100 uppercase">Registration Checklist</div>
           <div className="mt-1 text-xs text-zinc-500">Operational guardrails.</div>
         </CardHeader>
         <CardBody>
           <div className="space-y-3 text-sm text-zinc-300">
-            <div className="rounded-2xl bg-black/25 p-4 ring-1 ring-white/10">
-              <div className="text-xs font-semibold tracking-widest text-zinc-500">VERIFY</div>
-              <div className="mt-2 font-bold">Government ID + waiver</div>
-              <div className="mt-1 text-xs text-zinc-500">Confirm identity before activation.</div>
+            <div className="rounded-2xl bg-black/25 p-4 ring-1 ring-white/10 border-l-2 border-[#CCFF00]">
+              <div className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">VERIFY</div>
+              <div className="mt-2 font-bold text-zinc-100">Government ID + Waiver</div>
+              <div className="mt-1 text-xs text-zinc-500 italic">Confirm identity before facility access.</div>
             </div>
             <div className="rounded-2xl bg-black/25 p-4 ring-1 ring-white/10">
-              <div className="text-xs font-semibold tracking-widest text-zinc-500">SETUP</div>
-              <div className="mt-2 font-bold">Tier + dates</div>
-              <div className="mt-1 text-xs text-zinc-500">End date drives active/expired status.</div>
+              <div className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">ACCESS LEVEL</div>
+              <div className="mt-2 font-bold text-zinc-100">Gym vs. Muay Thai</div>
+              <div className="mt-1 text-xs text-zinc-500 italic">Access type determines facility permissions.</div>
             </div>
             <div className="rounded-2xl bg-black/25 p-4 ring-1 ring-white/10">
-              <div className="text-xs font-semibold tracking-widest text-zinc-500">TODO</div>
-              <div className="mt-2 font-bold">Payment + receipt</div>
-              <div className="mt-1 text-xs text-zinc-500">
-                // TODO: Group will implement Payment capture + receipts here.
+              <div className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">FINANCE</div>
+              <div className="mt-2 font-bold text-zinc-100">Payment + Receipt</div>
+              <div className="mt-1 text-xs text-zinc-500 italic">
+                // TODO: Group to implement billing integration.
               </div>
             </div>
           </div>
@@ -145,4 +147,3 @@ export function RegistrationPage() {
     </div>
   )
 }
-
