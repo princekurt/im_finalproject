@@ -1,10 +1,24 @@
 import React from 'react'
-import { LayoutDashboard, Users, UserPlus, LogOut, X } from 'lucide-react'
+import { 
+  LayoutDashboard, 
+  Users, 
+  UserPlus, 
+  LogOut, 
+  X, 
+  Zap, 
+  CreditCard 
+} from 'lucide-react'
 
-const NAV = [
+// Organized Navigation into groups
+const CORE_NAV = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { key: 'members', label: 'Members', icon: Users },
-  { key: 'registration', label: 'Registration', icon: UserPlus },
+  { key: 'members', label: 'Members List', icon: Users },
+  { key: 'registration', label: 'Customer Intake', icon: UserPlus },
+]
+
+const TRANSACTION_NAV = [
+  { key: 'walkin', label: 'Walk-in Entry', icon: Zap },
+  { key: 'membership_txn', label: 'Membership Txn', icon: CreditCard },
 ]
 
 function Brand() {
@@ -21,6 +35,30 @@ function Brand() {
   )
 }
 
+// Reusable Nav Item Component to keep code clean
+function NavItem({ item, activeKey, onNavigate, setOpen }) {
+  const Icon = item.icon
+  const active = item.key === activeKey
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        onNavigate?.(item.key)
+        setOpen?.(false)
+      }}
+      className={[
+        'w-full group flex items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold tracking-wide transition',
+        active
+          ? 'bg-[#CCFF00]/10 text-[#CCFF00] ring-1 ring-[#CCFF00]/20'
+          : 'text-zinc-200 hover:bg-white/5 active:bg-white/10',
+      ].join(' ')}
+    >
+      <Icon className={active ? 'h-4 w-4' : 'h-4 w-4 text-zinc-400 group-hover:text-zinc-200'} />
+      <span className="flex-1">{item.label}</span>
+    </button>
+  )
+}
+
 export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
   return (
     <>
@@ -29,32 +67,28 @@ export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
           <Brand />
         </div>
 
-        <div className="px-3 pb-4">
+        <div className="px-3 pb-4 overflow-y-auto">
           <div className="rounded-2xl bg-[#161616] ring-1 ring-white/10 p-2">
+            {/* CORE SECTION */}
             <div className="px-3 py-2 text-[11px] font-semibold tracking-widest text-zinc-500">
-              NAVIGATION
+              CORE MANAGEMENT
             </div>
             <nav className="space-y-1">
-              {NAV.map((item) => {
-                const Icon = item.icon
-                const active = item.key === activeKey
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => onNavigate?.(item.key)}
-                    className={[
-                      'w-full group flex items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold tracking-wide transition',
-                      active
-                        ? 'bg-[#CCFF00]/10 text-[#CCFF00] ring-1 ring-[#CCFF00]/20'
-                        : 'text-zinc-200 hover:bg-white/5 active:bg-white/10',
-                    ].join(' ')}
-                  >
-                    <Icon className={active ? 'h-4 w-4' : 'h-4 w-4 text-zinc-400 group-hover:text-zinc-200'} />
-                    <span className="flex-1">{item.label}</span>
-                  </button>
-                )
-              })}
+              {CORE_NAV.map((item) => (
+                <NavItem key={item.key} item={item} activeKey={activeKey} onNavigate={onNavigate} />
+              ))}
+            </nav>
+
+            <div className="my-3 h-px bg-white/10" />
+
+            {/* TRANSACTIONS SECTION */}
+            <div className="px-3 py-2 text-[11px] font-semibold tracking-widest text-zinc-500">
+              TRANSACTIONS
+            </div>
+            <nav className="space-y-1">
+              {TRANSACTION_NAV.map((item) => (
+                <NavItem key={item.key} item={item} activeKey={activeKey} onNavigate={onNavigate} />
+              ))}
             </nav>
 
             <div className="my-3 h-px bg-white/10" />
@@ -72,18 +106,18 @@ export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
 
         <div className="mt-auto px-5 pb-6">
           <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 p-4">
-            <div className="text-xs font-semibold tracking-widest text-zinc-500">INDUSTRIAL DARK</div>
-            <div className="mt-2 text-sm font-bold text-zinc-200">
-              Keep it clean. Keep it loud.
+            <div className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">System Status</div>
+            <div className="mt-2 text-sm font-bold text-[#CCFF00]">
+              Operational
             </div>
             <div className="mt-1 text-xs text-zinc-500">
-              This is UI-only. Plug in your auth + DB later.
+              v1.0.4-industrial
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tablet / small screens drawer */}
+      {/* Mobile Drawer (Matches the same structure) */}
       {open ? (
         <div className="md:hidden fixed inset-0 z-40">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen?.(false)} />
@@ -92,53 +126,26 @@ export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
               <Brand />
               <button
                 type="button"
-                className="rounded-xl bg-white/0 p-2 text-zinc-200 ring-1 ring-white/10 hover:bg-white/5 active:bg-white/10"
+                className="rounded-xl bg-white/0 p-2 text-zinc-200 ring-1 ring-white/10"
                 onClick={() => setOpen?.(false)}
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-
             <div className="px-3 pb-4">
               <div className="rounded-2xl bg-[#161616] ring-1 ring-white/10 p-2">
-                <div className="px-3 py-2 text-[11px] font-semibold tracking-widest text-zinc-500">
-                  NAVIGATION
-                </div>
-                <nav className="space-y-1">
-                  {NAV.map((item) => {
-                    const Icon = item.icon
-                    const active = item.key === activeKey
-                    return (
-                      <button
-                        key={item.key}
-                        type="button"
-                        onClick={() => {
-                          onNavigate?.(item.key)
-                          setOpen?.(false)
-                        }}
-                        className={[
-                          'w-full group flex items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold tracking-wide transition',
-                          active
-                            ? 'bg-[#CCFF00]/10 text-[#CCFF00] ring-1 ring-[#CCFF00]/20'
-                            : 'text-zinc-200 hover:bg-white/5 active:bg-white/10',
-                        ].join(' ')}
-                      >
-                        <Icon className={active ? 'h-4 w-4' : 'h-4 w-4 text-zinc-400 group-hover:text-zinc-200'} />
-                        <span className="flex-1">{item.label}</span>
-                      </button>
-                    )
-                  })}
-                </nav>
-
+                <div className="px-3 py-2 text-[11px] font-semibold tracking-widest text-zinc-500">CORE</div>
+                {CORE_NAV.map((item) => (
+                  <NavItem key={item.key} item={item} activeKey={activeKey} onNavigate={onNavigate} setOpen={setOpen} />
+                ))}
                 <div className="my-3 h-px bg-white/10" />
-
-                <button
-                  type="button"
-                  onClick={() => onLogout?.()}
-                  className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold tracking-wide text-zinc-200 hover:bg-white/5 active:bg-white/10"
-                >
-                  <LogOut className="h-4 w-4 text-zinc-400" />
-                  Logout
+                <div className="px-3 py-2 text-[11px] font-semibold tracking-widest text-zinc-500">TRANSACTIONS</div>
+                {TRANSACTION_NAV.map((item) => (
+                  <NavItem key={item.key} item={item} activeKey={activeKey} onNavigate={onNavigate} setOpen={setOpen} />
+                ))}
+                <div className="my-3 h-px bg-white/10" />
+                <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-zinc-200">
+                  <LogOut className="h-4 w-4 text-zinc-400" /> Logout
                 </button>
               </div>
             </div>
@@ -148,4 +155,3 @@ export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
     </>
   )
 }
-

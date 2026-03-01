@@ -4,6 +4,10 @@ import { DashboardLayout } from './layouts/DashboardLayout.jsx'
 import { DashboardPage } from './pages/DashboardPage.jsx'
 import { MembersPage } from './pages/MembersPage.jsx'
 import { RegistrationPage } from './pages/RegistrationPage.jsx'
+// --- ADD THESE TWO IMPORTS ---
+import { WalkInPage } from './pages/WalkInPage.jsx'
+import { MembershipTransactionPage } from './pages/MembershipTransactionPage.jsx'
+// -----------------------------
 import { MemberProfileModal } from './components/MemberProfileModal.jsx'
 import { MEMBERS } from './data/members.js'
 
@@ -21,7 +25,6 @@ export default function App() {
     return (
       <LoginPage
         onLogin={({ staffId }) => {
-          // TODO: Group will implement Admin Login here.
           setSession({ authenticated: true, staffId: staffId || 'LVL-STAFF' })
         }}
       />
@@ -34,22 +37,31 @@ export default function App() {
       staffId={session.staffId}
       onNavigate={(key) => setActiveKey(key)}
       onLogout={() => {
-        // TODO: Group will implement Logout here.
         setSession({ authenticated: false, staffId: '' })
         setActiveKey('dashboard')
         setSelectedMember(null)
       }}
     >
-      {activeKey === 'dashboard' ? (
+      {/* 1. Dashboard */}
+      {activeKey === 'dashboard' && (
         <DashboardPage members={members} onOpenMember={(m) => setSelectedMember(m)} />
-      ) : null}
+      )}
 
-      {activeKey === 'members' ? (
+      {/* 2. Members List */}
+      {activeKey === 'members' && (
         <MembersPage members={members} onOpenMember={(m) => setSelectedMember(m)} />
-      ) : null}
+      )}
 
-      {activeKey === 'registration' ? <RegistrationPage /> : null}
+      {/* 3. Customer Registration */}
+      {activeKey === 'registration' && <RegistrationPage />}
 
+      {/* 4. NEW: Walk-In Transaction */}
+      {activeKey === 'walkin' && <WalkInPage />}
+
+      {/* 5. NEW: Membership Transaction */}
+      {activeKey === 'membership_txn' && <MembershipTransactionPage />}
+
+      {/* Member Details Modal */}
       <MemberProfileModal
         open={Boolean(selectedMember)}
         member={selectedMember}
