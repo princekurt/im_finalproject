@@ -1,22 +1,62 @@
 import React, { useState } from 'react'
-import { ClipboardSignature, UserPlus } from 'lucide-react'
+import { UserPlus, Loader2 } from 'lucide-react'
 import { Button } from '../components/Button.jsx'
 import { Card, CardBody, CardHeader } from '../components/Card.jsx'
 import { FieldLabel, SelectField, TextField } from '../components/Field.jsx'
+import { supabase } from '../lib/supabase'
 
 export function RegistrationPage() {
+  const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     full_name: '',
     contact_number: '',
     address: '',
-    gender_id: '1', // Default to first ID in tbl_gender
+    gender_id: '1', 
     dob: '',
-    relation_status_id: '1', // Default to first ID in tbl_relationshipstatus
+    relation_status_id: '1',
   })
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      const { error } = await supabase
+        .from('tbl_customer')
+        .insert([
+          {
+            full_name: form.full_name,
+            contact_number: form.contact_number,
+            address: form.address,
+            gender_id: parseInt(form.gender_id),
+            dob: form.dob,
+            relation_status_id: parseInt(form.relation_status_id),
+          },
+        ])
+
+      if (error) throw error
+
+      alert('Customer successfully registered!')
+      
+      setForm({
+        full_name: '',
+        contact_number: '',
+        address: '',
+        gender_id: '1',
+        dob: '',
+        relation_status_id: '1',
+      })
+
+    } catch (error) {
+      console.error('Error:', error.message)
+      alert('Error registering customer: ' + error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      {/* LEFT SIDE: MAIN FORM */}
       <Card className="lg:col-span-2">
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
@@ -32,18 +72,12 @@ export function RegistrationPage() {
           </div>
         </CardHeader>
         <CardBody>
-          <form 
-            className="space-y-6" 
-            onSubmit={(e) => {
-              e.preventDefault()
-              console.log('Registering Customer to tbl_customer:', form)
-              // TODO: Implement supabase.from('tbl_customer').insert([form])
-            }}
-          >
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2">
               <div className="md:col-span-2 space-y-2">
                 <FieldLabel>FULL NAME</FieldLabel>
                 <TextField 
+                  required
                   value={form.full_name} 
                   onChange={(e) => setForm({...form, full_name: e.target.value})}
                   placeholder="Juan Dela Cruz"
@@ -53,6 +87,7 @@ export function RegistrationPage() {
               <div className="space-y-2">
                 <FieldLabel>CONTACT NUMBER</FieldLabel>
                 <TextField 
+                  required
                   value={form.contact_number} 
                   onChange={(e) => setForm({...form, contact_number: e.target.value})}
                   placeholder="0917 000 0000"
@@ -62,6 +97,7 @@ export function RegistrationPage() {
               <div className="space-y-2">
                 <FieldLabel>DATE OF BIRTH</FieldLabel>
                 <TextField 
+                  required
                   type="date" 
                   value={form.dob} 
                   onChange={(e) => setForm({...form, dob: e.target.value})} 
@@ -71,12 +107,14 @@ export function RegistrationPage() {
               <div className="md:col-span-2 space-y-2">
                 <FieldLabel>HOME ADDRESS</FieldLabel>
                 <TextField 
+                  required
                   value={form.address} 
                   onChange={(e) => setForm({...form, address: e.target.value})}
                   placeholder="Street Name, Barangay, City"
                 />
               </div>
 
+              {/* UPDATED GENDER CHOICES */}
               <div className="space-y-2">
                 <FieldLabel>GENDER</FieldLabel>
                 <SelectField 
@@ -85,9 +123,11 @@ export function RegistrationPage() {
                 >
                   <option value="1">Male</option>
                   <option value="2">Female</option>
+                  <option value="3">Non-binary</option>
                 </SelectField>
               </div>
 
+              {/* UPDATED RELATIONSHIP CHOICES */}
               <div className="space-y-2">
                 <FieldLabel>RELATIONSHIP STATUS</FieldLabel>
                 <SelectField 
@@ -95,8 +135,12 @@ export function RegistrationPage() {
                   onChange={(e) => setForm({...form, relation_status_id: e.target.value})}
                 >
                   <option value="1">Single</option>
-                  <option value="2">Married</option>
-                  <option value="3">Widowed</option>
+                  <option value="2">In a relationship</option>
+                  <option value="3">Married</option>
+                  <option value="4">Separated</option>
+                  <option value="5">Annulled</option>
+                  <option value="6">Widowed</option>
+                  <option value="7">Prefer not to say</option>
                 </SelectField>
               </div>
             </div>
@@ -109,12 +153,13 @@ export function RegistrationPage() {
                 <Button 
                   type="button" 
                   variant="ghost" 
+                  disabled={loading}
                   onClick={() => setForm({ full_name: '', contact_number: '', address: '', gender_id: '1', dob: '', relation_status_id: '1' })}
                 >
                   Clear
                 </Button>
-                <Button type="submit" variant="primary">
-                  Create Customer Profile
+                <Button type="submit" variant="primary" disabled={loading}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Customer Profile'}
                 </Button>
               </div>
             </div>
@@ -130,26 +175,8 @@ export function RegistrationPage() {
         <CardBody className="space-y-4">
           <div className="rounded-2xl bg-zinc-900/50 p-4 border border-white/5">
             <p className="text-xs text-zinc-400 leading-relaxed italic">
-              "Customer profiles must be created before recording any <strong>Membership</strong> or <strong>Walk-In</strong> transactions."
+              "Ensure the customer's legal name matches their ID for insurance and waiver purposes."
             </p>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Next Steps</div>
-            <ul className="text-xs text-zinc-300 space-y-2">
-              <li className="flex items-center gap-2">
-                <div className="h-1 w-1 rounded-full bg-[#CCFF00]" />
-                Verify Identity (ID check)
-              </li>
-              <li className="flex items-center gap-2 opacity-50">
-                <div className="h-1 w-1 rounded-full bg-zinc-500" />
-                Assign Membership (Separate Page)
-              </li>
-              <li className="flex items-center gap-2 opacity-50">
-                <div className="h-1 w-1 rounded-full bg-zinc-500" />
-                Record Payment (Separate Page)
-              </li>
-            </ul>
           </div>
         </CardBody>
       </Card>
