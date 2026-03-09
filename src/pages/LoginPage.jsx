@@ -15,23 +15,29 @@ export function LoginPage({ onLoginSuccess }) {
     setLoading(true)
 
     try {
+      // Fetch user data including account_status
       const { data: staff, error } = await supabase
         .from('tbl_receptionist')
-        .select('receptionist_id, receptionist_name, is_admin')
+        .select('receptionist_id, receptionist_name, is_admin, account_status')
         .eq('username', username)
         .eq('password', password)
         .single()
 
+      // 1. Check if user exists/credentials are right
       if (error || !staff) {
-        throw new Error("Access Denied: Invalid credentials.")
+        throw new Error("Access Denied: Invalid username or password.")
       }
 
-      // Save the details to the browser
+      // 2. STATUS GATE: Block anyone not 'Active'
+      if (staff.account_status !== 'Active') {
+        throw new Error(`Access Denied: Your account is currently ${staff.account_status}. Please contact the Owner.`)
+      }
+
+      // 3. Save session if everything is good
       localStorage.setItem('staff_id', staff.receptionist_id)
       localStorage.setItem('staff_name', staff.receptionist_name)
       localStorage.setItem('is_admin', staff.is_admin)
 
-      // Tell App.jsx we are in
       onLoginSuccess()
 
     } catch (err) {
@@ -70,7 +76,7 @@ export function LoginPage({ onLoginSuccess }) {
                         <Shield className="h-3.5 w-3.5 text-[#CCFF00]" />
                         SECURE CONSOLE
                       </div>
-                      <div className="mt-4 text-2xl font-black tracking-tight uppercase italic">Admin Login</div>
+                      <div className="mt-4 text-2xl font-black tracking-tight uppercase italic">Staff Login</div>
                     </div>
                   </div>
 
@@ -79,9 +85,9 @@ export function LoginPage({ onLoginSuccess }) {
                       <FieldLabel htmlFor="username">USERNAME</FieldLabel>
                       <TextField
                         id="username"
-                        value={username}
+                        value={username}                                              
                         onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Admin Username"
+                        placeholder="Enter Username"
                         leading={<User className="h-4 w-4" />}
                         required
                       />
