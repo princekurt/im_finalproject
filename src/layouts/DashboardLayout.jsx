@@ -7,6 +7,9 @@ const TITLES = {
   dashboard: { title: 'Snapshot', sub: 'Realtime gym intel. Stay sharp.' },
   members: { title: 'Member Directory', sub: 'Search, verify status, view profiles.' },
   registration: { title: 'Registration', sub: 'Log new members into the system.' },
+  walkin: { title: 'Walk-In', sub: 'Process non-member guest access.' },
+  membership_txn: { title: 'Membership', sub: 'Handle plan renewals and upgrades.' },
+  manage_staff: { title: 'Staff Management', sub: 'Authorize and manage system personnel.' }, // Added title
 }
 
 export function DashboardLayout({ activeKey, onNavigate, onLogout, staffId, children }) {
@@ -39,15 +42,15 @@ export function DashboardLayout({ activeKey, onNavigate, onLogout, staffId, chil
                     <Menu className="h-4 w-4" />
                   </button>
                   <div className="min-w-0">
-                    <div className="truncate text-lg font-black tracking-tight">{meta.title}</div>
-                    <div className="truncate text-xs text-zinc-500">{meta.sub}</div>
+                    <div className="truncate text-lg font-black tracking-tight uppercase italic">{meta.title}</div>
+                    <div className="truncate text-xs text-zinc-500 font-medium">{meta.sub}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 rounded-2xl bg-[#161616] px-3 py-2 ring-1 ring-white/10">
+                <div className="flex items-center gap-2 rounded-2xl bg-[#161616] px-3 py-2 ring-1 ring-white/10 shadow-[0_0_15px_rgba(204,255,0,0.05)]">
                   <ShieldCheck className="h-4 w-4 text-[#CCFF00]" />
                   <div className="leading-tight">
-                    <div className="text-[11px] font-semibold tracking-widest text-zinc-500">STAFF</div>
+                    <div className="text-[11px] font-semibold tracking-widest text-zinc-500 uppercase">Authorized</div>
                     <div className="text-xs font-bold text-zinc-200">{staffId || '—'}</div>
                   </div>
                 </div>
@@ -63,4 +66,3 @@ export function DashboardLayout({ activeKey, onNavigate, onLogout, staffId, chil
     </div>
   )
 }
-

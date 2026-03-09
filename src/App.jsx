@@ -4,10 +4,9 @@ import { DashboardLayout } from './layouts/DashboardLayout.jsx'
 import { DashboardPage } from './pages/DashboardPage.jsx'
 import { MembersPage } from './pages/MembersPage.jsx'
 import { RegistrationPage } from './pages/RegistrationPage.jsx'
-// --- ADD THESE TWO IMPORTS ---
 import { WalkInPage } from './pages/WalkInPage.jsx'
 import { MembershipTransactionPage } from './pages/MembershipTransactionPage.jsx'
-// -----------------------------
+import { ManageStaffPage } from './pages/ManageStaffPage.jsx' // Added Import
 import { MemberProfileModal } from './components/MemberProfileModal.jsx'
 import { MEMBERS } from './data/members.js'
 
@@ -15,53 +14,50 @@ export default function App() {
   const members = useMemo(() => MEMBERS, [])
 
   const [session, setSession] = useState({
-    authenticated: false,
-    staffId: '',
+    authenticated: !!localStorage.getItem('staff_id'),
+    staffName: localStorage.getItem('staff_name') || '',
   })
+
   const [activeKey, setActiveKey] = useState('dashboard')
   const [selectedMember, setSelectedMember] = useState(null)
 
+  const handleLoginSuccess = () => {
+    setSession({
+      authenticated: true,
+      staffName: localStorage.getItem('staff_name')
+    })
+  }
+
   if (!session.authenticated) {
-    return (
-      <LoginPage
-        onLogin={({ staffId }) => {
-          setSession({ authenticated: true, staffId: staffId || 'LVL-STAFF' })
-        }}
-      />
-    )
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />
   }
 
   return (
     <DashboardLayout
       activeKey={activeKey}
-      staffId={session.staffId}
+      staffId={session.staffName}
       onNavigate={(key) => setActiveKey(key)}
       onLogout={() => {
-        setSession({ authenticated: false, staffId: '' })
+        localStorage.clear()
+        setSession({ authenticated: false, staffName: '' })
         setActiveKey('dashboard')
         setSelectedMember(null)
       }}
     >
-      {/* 1. Dashboard */}
+      {/* Page Routing Logic */}
       {activeKey === 'dashboard' && (
         <DashboardPage members={members} onOpenMember={(m) => setSelectedMember(m)} />
       )}
-
-      {/* 2. Members List */}
       {activeKey === 'members' && (
         <MembersPage members={members} onOpenMember={(m) => setSelectedMember(m)} />
       )}
-
-      {/* 3. Customer Registration */}
       {activeKey === 'registration' && <RegistrationPage />}
-
-      {/* 4. NEW: Walk-In Transaction */}
       {activeKey === 'walkin' && <WalkInPage />}
-
-      {/* 5. NEW: Membership Transaction */}
       {activeKey === 'membership_txn' && <MembershipTransactionPage />}
+      
+      {/* NEW: Manage Staff Page */}
+      {activeKey === 'manage_staff' && <ManageStaffPage />}
 
-      {/* Member Details Modal */}
       <MemberProfileModal
         open={Boolean(selectedMember)}
         member={selectedMember}

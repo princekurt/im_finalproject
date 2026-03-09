@@ -6,7 +6,8 @@ import {
   LogOut, 
   X, 
   Zap, 
-  CreditCard 
+  CreditCard,
+  ShieldAlert // Icon for Admin section
 } from 'lucide-react'
 
 // Organized Navigation into groups
@@ -19,6 +20,11 @@ const CORE_NAV = [
 const TRANSACTION_NAV = [
   { key: 'walkin', label: 'Walk-in Entry', icon: Zap },
   { key: 'membership_txn', label: 'Membership Txn', icon: CreditCard },
+]
+
+// NEW: Admin Navigation Group
+const ADMIN_NAV = [
+  { key: 'manage_staff', label: 'Manage Staff', icon: ShieldAlert },
 ]
 
 function Brand() {
@@ -35,7 +41,6 @@ function Brand() {
   )
 }
 
-// Reusable Nav Item Component to keep code clean
 function NavItem({ item, activeKey, onNavigate, setOpen }) {
   const Icon = item.icon
   const active = item.key === activeKey
@@ -60,6 +65,9 @@ function NavItem({ item, activeKey, onNavigate, setOpen }) {
 }
 
 export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
+  // Check if current user is an admin
+  const isAdmin = localStorage.getItem('is_admin') === 'true';
+
   return (
     <>
       <div className="hidden md:flex md:w-72 md:flex-col md:border-r md:border-white/10 md:bg-[#0A0A0A]">
@@ -69,6 +77,7 @@ export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
 
         <div className="px-3 pb-4 overflow-y-auto">
           <div className="rounded-2xl bg-[#161616] ring-1 ring-white/10 p-2">
+            
             {/* CORE SECTION */}
             <div className="px-3 py-2 text-[11px] font-semibold tracking-widest text-zinc-500">
               CORE MANAGEMENT
@@ -90,6 +99,21 @@ export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
                 <NavItem key={item.key} item={item} activeKey={activeKey} onNavigate={onNavigate} />
               ))}
             </nav>
+
+            {/* NEW: ADMIN SECTION (Conditional) */}
+            {isAdmin && (
+              <>
+                <div className="my-3 h-px bg-white/10" />
+                <div className="px-3 py-2 text-[11px] font-semibold tracking-widest text-[#CCFF00]">
+                  SYSTEM ADMINISTRATION
+                </div>
+                <nav className="space-y-1">
+                  {ADMIN_NAV.map((item) => (
+                    <NavItem key={item.key} item={item} activeKey={activeKey} onNavigate={onNavigate} />
+                  ))}
+                </nav>
+              </>
+            )}
 
             <div className="my-3 h-px bg-white/10" />
 
@@ -117,7 +141,7 @@ export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
         </div>
       </div>
 
-      {/* Mobile Drawer (Matches the same structure) */}
+      {/* Mobile Drawer */}
       {open ? (
         <div className="md:hidden fixed inset-0 z-40">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setOpen?.(false)} />
@@ -138,13 +162,26 @@ export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
                 {CORE_NAV.map((item) => (
                   <NavItem key={item.key} item={item} activeKey={activeKey} onNavigate={onNavigate} setOpen={setOpen} />
                 ))}
+                
                 <div className="my-3 h-px bg-white/10" />
                 <div className="px-3 py-2 text-[11px] font-semibold tracking-widest text-zinc-500">TRANSACTIONS</div>
                 {TRANSACTION_NAV.map((item) => (
                   <NavItem key={item.key} item={item} activeKey={activeKey} onNavigate={onNavigate} setOpen={setOpen} />
                 ))}
+
+                {/* Mobile Admin Section */}
+                {isAdmin && (
+                  <>
+                    <div className="my-3 h-px bg-white/10" />
+                    <div className="px-3 py-2 text-[11px] font-semibold tracking-widest text-[#CCFF00]">ADMIN</div>
+                    {ADMIN_NAV.map((item) => (
+                      <NavItem key={item.key} item={item} activeKey={activeKey} onNavigate={onNavigate} setOpen={setOpen} />
+                    ))}
+                  </>
+                )}
+
                 <div className="my-3 h-px bg-white/10" />
-                <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-zinc-200">
+                <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-zinc-200 hover:bg-white/5 rounded-xl">
                   <LogOut className="h-4 w-4 text-zinc-400" /> Logout
                 </button>
               </div>
