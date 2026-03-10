@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Zap, Clock, UserSearch, Receipt, Loader2 } from 'lucide-react'
+import { Zap, UserSearch, Receipt, Loader2, ShieldCheck } from 'lucide-react'
 import { Button } from '../components/Button.jsx'
 import { Card, CardBody, CardHeader } from '../components/Card.jsx'
 import { FieldLabel, SelectField, TextField } from '../components/Field.jsx'
@@ -9,19 +9,21 @@ export function WalkInPage() {
   const [loading, setLoading] = useState(false)
   const [customers, setCustomers] = useState([]) 
   const [walkinTypes, setWalkinTypes] = useState([]) 
-  const [paymentTypes, setPaymentTypes] = useState([]) // State for dynamic payment types
+  const [paymentTypes, setPaymentTypes] = useState([]) 
   
+  // Get current logged-in staff info
+  const staffName = localStorage.getItem('staff_name') || 'Staff'
+  const currentStaffId = localStorage.getItem('staff_id')
+
   const [form, setForm] = useState({
-    receptionist_id: '1',
     paymenttype_id: '', 
-    discounttype_id: '1',
+    discounttype_id: '7', // Updated to your 'None' discount ID
     customer_id: '', 
     walkintype_id: '', 
     time_in: new Date().toISOString().slice(0, 16),
     time_out: '',
   })
 
-  // 1. Fetch existing Data from your DB
   useEffect(() => {
     const fetchData = async () => {
       const { data: typeData } = await supabase.from('tbl_walkintype').select('*')
@@ -35,7 +37,6 @@ export function WalkInPage() {
 
       if (payData && payData.length > 0) {
         setPaymentTypes(payData)
-        // Set default payment type to the first one (usually Cash)
         setForm(prev => ({ ...prev, paymenttype_id: payData[0].paymenttype_id.toString() }))
       }
 
@@ -44,35 +45,38 @@ export function WalkInPage() {
     fetchData()
   }, [])
 
-  // 2. Dynamic Price Calculation from your DB values
   const selectedType = walkinTypes.find(t => t.walkintype_id.toString() === form.walkintype_id.toString())
   const totalAmount = selectedType ? selectedType.walkin_fee : 0
 
   const handleProcessTransaction = async (e) => {
     e.preventDefault()
     if (!form.customer_id) return alert("Please select a customer!")
+    if (!currentStaffId) return alert("No active staff session. Please re-login.")
+    
     setLoading(true)
 
     try {
-      // Step A: Create the Parent Transaction
+      // Step A: Create Parent Transaction with your specific column names
       const { data: trans, error: transError } = await supabase
         .from('tbl_transaction')
         .insert([{
-          receptionist_id: parseInt(form.receptionist_id),
+          receptionist_id: parseInt(currentStaffId),
           paymenttype_id: parseInt(form.paymenttype_id),
           discounttype_id: parseInt(form.discounttype_id),
-          total_amount: totalAmount
+          transac_date: new Date().toISOString(),
+          total: totalAmount,        // Changed from total_amount
+          amount_due: totalAmount    // Added missing column
         }])
         .select()
         .single()
 
       if (transError) throw transError
 
-      // Step B: Create the Walk-In Record linked to that Transaction
+      // Step B: Create Walk-In Record with your specific column names
       const { error: walkinError } = await supabase
         .from('tbl_walkintransaction')
         .insert([{
-          transaction_id: trans.transaction_id,
+          transac_id: trans.transac_id, // Changed from transaction_id to match your PK
           customer_id: parseInt(form.customer_id),
           walkintype_id: parseInt(form.walkintype_id),
           time_in: form.time_in,
@@ -81,9 +85,8 @@ export function WalkInPage() {
 
       if (walkinError) throw walkinError
 
-      alert(`Success! Transaction # ${trans.transaction_id} recorded.`)
+      alert(`Success! Entry recorded by ${staffName}.`)
       
-      // Reset only customer and timeout
       setForm(prev => ({ 
         ...prev, 
         customer_id: '', 
@@ -101,12 +104,15 @@ export function WalkInPage() {
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <Card className="lg:col-span-2">
+      <Card className="lg:col-span-2 border-t-2 border-[#CCFF00]">
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-sm font-black tracking-tight text-zinc-100 uppercase italic">Walk-In Entry</div>
-              <div className="mt-1 text-xs text-zinc-500">Linking <strong>tbl_transaction</strong> and <strong>tbl_walkintransaction</strong>.</div>
+              <div className="mt-1 text-[10px] text-zinc-500 font-bold flex items-center gap-1 uppercase">
+                <ShieldCheck className="h-3 w-3 text-[#CCFF00]" />
+                Operator: {staffName}
+              </div>
             </div>
             <div className="rounded-2xl bg-[#CCFF00]/10 p-3 ring-1 ring-[#CCFF00]/20 text-[#CCFF00]">
               <Zap className="h-5 w-5" />
@@ -117,7 +123,6 @@ export function WalkInPage() {
           <form className="space-y-6" onSubmit={handleProcessTransaction}>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               
-              {/* SEARCHABLE CUSTOMER SELECT */}
               <div className="md:col-span-2 space-y-2">
                 <FieldLabel>SELECT CUSTOMER</FieldLabel>
                 <div className="relative">
@@ -138,7 +143,6 @@ export function WalkInPage() {
                 </div>
               </div>
 
-              {/* DYNAMIC TYPES FROM YOUR DB */}
               <div className="space-y-2">
                 <FieldLabel>WALK-IN TYPE</FieldLabel>
                 <SelectField 
@@ -153,7 +157,6 @@ export function WalkInPage() {
                 </SelectField>
               </div>
 
-              {/* DYNAMIC PAYMENT TYPES FROM YOUR DB */}
               <div className="space-y-2">
                 <FieldLabel>PAYMENT METHOD</FieldLabel>
                 <SelectField 
@@ -190,22 +193,21 @@ export function WalkInPage() {
             <div className="pt-4 border-t border-white/5 flex justify-end">
               <Button type="submit" variant="primary" className="w-full md:w-auto" disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Receipt className="h-4 w-4 mr-2" />}
-                Process Walk-In Transaction
+                Confirm Walk-In
               </Button>
             </div>
           </form>
         </CardBody>
       </Card>
 
-      {/* BILLING PREVIEW */}
       <div className="space-y-4">
-        <Card>
+        <Card className="bg-black/40">
           <CardHeader>
-            <div className="text-sm font-black tracking-tight text-zinc-100 uppercase">Transaction Summary</div>
+            <div className="text-sm font-black tracking-tight text-zinc-100 uppercase">Billing Summary</div>
           </CardHeader>
           <CardBody>
             <div className="space-y-4 text-center">
-              <div className="py-6 rounded-2xl bg-black/40 ring-1 ring-white/5 border-b-2 border-[#CCFF00]">
+              <div className="py-6 rounded-2xl bg-[#111] ring-1 ring-white/5 border-b-2 border-[#CCFF00]">
                 <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Amount Due</div>
                 <div className="text-4xl font-black text-[#CCFF00]">₱{totalAmount.toLocaleString()}</div>
               </div>
