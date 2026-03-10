@@ -1,26 +1,114 @@
-import React, { useState } from 'react'
-import { CreditCard, Calendar, UserSearch, ShieldCheck, TicketPercent } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { CreditCard, UserSearch, ShieldCheck, TicketPercent, Loader2 } from 'lucide-react'
 import { Button } from '../components/Button.jsx'
 import { Card, CardBody, CardHeader } from '../components/Card.jsx'
 import { FieldLabel, SelectField, TextField } from '../components/Field.jsx'
+import { supabase } from '../lib/supabase'
 
 export function MembershipTransactionPage() {
+  const [fetching, setFetching] = useState(true)
+  const [loading, setLoading] = useState(false)
+  
+  const [customers, setCustomers] = useState([])
+  const [membershipTypes, setMembershipTypes] = useState([])
+  const [paymentTypes, setPaymentTypes] = useState([])
+  const [discountTypes, setDiscountTypes] = useState([])
+
+  const currentStaffId = localStorage.getItem('staff_id')
+
   const [form, setForm] = useState({
-    // tbl_transaction fields
-    receptionist_id: '1',
-    paymenttype_id: '1',
-    discounttype_id: '1',
-    // tbl_membership fields
     customer_id: '',
     membershiptype_id: '1',
-    start_date: '',
+    paymenttype_id: '1',
+    discounttype_id: '7', 
+    start_date: new Date().toISOString().split('T')[0],
     end_date: '',
   })
 
-  // Mock calculation based on tbl_membershiptype
-  const baseFee = form.membershiptype_id === '2' ? 2500 : 1000;
-  const discount = form.discounttype_id === '2' ? 200 : 0; // Example: Promo discount
-  const amountDue = baseFee - discount;
+  // --- AUTO-CALCULATE END DATE (30 DAYS) ---
+  useEffect(() => {
+    if (form.start_date) {
+      const date = new Date(form.start_date);
+      date.setDate(date.getDate() + 30); // Add 30 days
+      const formattedDate = date.toISOString().split('T')[0];
+      
+      setForm(prev => ({ ...prev, end_date: formattedDate }));
+    }
+  }, [form.start_date, form.membershiptype_id]); // Runs when start date or plan changes
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data: memData } = await supabase.from('tbl_membershiptype').select('*')
+        const { data: custData } = await supabase.from('tbl_customer').select('*')
+        const { data: payData } = await supabase.from('tbl_paymenttype').select('*')
+        const { data: discData } = await supabase.from('tbl_discounttype').select('*')
+
+        if (memData) setMembershipTypes(memData)
+        if (custData) setCustomers(custData)
+        if (payData) setPaymentTypes(payData)
+        if (discData) setDiscountTypes(discData)
+
+        if (memData?.length > 0) setForm(f => ({ ...f, membershiptype_id: memData[0].membershiptype_id.toString() }))
+        if (payData?.length > 0) setForm(f => ({ ...f, paymenttype_id: payData[0].paymenttype_id.toString() }))
+      } catch (err) {
+        console.error("Fetch Error:", err)
+      } finally {
+        setFetching(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const selectedType = membershipTypes.find(m => m.membershiptype_id?.toString() === form.membershiptype_id)
+  const selectedDiscount = discountTypes.find(d => d.discounttype_id?.toString() === form.discounttype_id)
+  
+  const baseFee = selectedType ? parseFloat(selectedType.membership_fee) : 0
+  const discountPercentage = selectedDiscount ? parseFloat(selectedDiscount.discounttype_fee) : 0
+  
+  const discountInPesos = (baseFee * discountPercentage) / 100
+  const amountDue = Math.max(0, baseFee - discountInPesos)
+
+  const handleFinalize = async (e) => {
+    e.preventDefault()
+    if (!form.customer_id || !form.end_date) return alert("Please select a member and end date.")
+    setLoading(true)
+
+    try {
+      const { data: txn, error: txnErr } = await supabase.from('tbl_transaction').insert([{
+        receptionist_id: parseInt(currentStaffId),
+        paymenttype_id: parseInt(form.paymenttype_id),
+        discounttype_id: parseInt(form.discounttype_id),
+        transac_date: new Date().toISOString(),
+        total: baseFee,
+        amount_due: amountDue
+      }]).select().single()
+      if (txnErr) throw txnErr
+
+      const { data: member, error: memErr } = await supabase.from('tbl_membership').insert([{
+        customer_id: parseInt(form.customer_id),
+        membershiptype_id: parseInt(form.membershiptype_id),
+        start_date: form.start_date,
+        end_date: form.end_date
+      }]).select().single()
+      if (memErr) throw memErr
+
+      const { error: bridgeErr } = await supabase.from('tbl_membershiptransaction').insert([{
+        transac_id: txn.transac_id,
+        membership_id: member.membership_id
+      }])
+      if (bridgeErr) throw bridgeErr
+
+      alert("Membership Transaction Successful!")
+      setForm(prev => ({ ...prev, customer_id: '', end_date: '' }))
+    } catch (err) {
+      alert("Database Error: " + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (fetching) return <div className="p-10 text-[#CCFF00] font-black italic">LOADING GYM DATA...</div>
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -29,7 +117,7 @@ export function MembershipTransactionPage() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-sm font-black tracking-tight text-zinc-100 uppercase italic">Membership Transaction</div>
-              <div className="mt-1 text-xs text-zinc-500">Processing <strong>tbl_membership</strong> + <strong>tbl_transaction</strong>.</div>
+              <div className="mt-1 text-xs text-zinc-500">Generating records for <strong>tbl_membership</strong> and <strong>tbl_transaction</strong>.</div>
             </div>
             <div className="rounded-2xl bg-[#CCFF00]/10 p-3 ring-1 ring-[#CCFF00]/20 text-[#CCFF00]">
               <CreditCard className="h-5 w-5" />
@@ -37,34 +125,37 @@ export function MembershipTransactionPage() {
           </div>
         </CardHeader>
         <CardBody>
-          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-6" onSubmit={handleFinalize}>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               
-              {/* CUSTOMER SEARCH */}
               <div className="md:col-span-2 space-y-2">
                 <FieldLabel>SELECT MEMBER</FieldLabel>
                 <div className="relative">
                   <SelectField 
                     value={form.customer_id} 
                     onChange={(e) => setForm({...form, customer_id: e.target.value})}
+                    required
                   >
-                    <option value="">Search Existing Customer...</option>
-                    <option value="101">Juan Dela Cruz (C-101)</option>
-                    <option value="102">Maria Santos (C-102)</option>
+                    <option value="">Choose a member...</option>
+                    {customers.map(c => (
+                      <option key={c.customer_id} value={c.customer_id}>{c.full_name}</option>
+                    ))}
                   </SelectField>
                   <UserSearch className="absolute right-8 top-2.5 h-4 w-4 text-zinc-500 pointer-events-none" />
                 </div>
               </div>
 
-              {/* MEMBERSHIP SELECTION */}
               <div className="space-y-2">
                 <FieldLabel>MEMBERSHIP TYPE</FieldLabel>
                 <SelectField 
                   value={form.membershiptype_id} 
                   onChange={(e) => setForm({...form, membershiptype_id: e.target.value})}
                 >
-                  <option value="1">Whole Gym Access</option>
-                  <option value="2">Whole Gym & Muay Thai</option>
+                  {membershipTypes.map(m => (
+                    <option key={m.membershiptype_id} value={m.membershiptype_id}>
+                      {m.membershiptype_name}
+                    </option>
+                  ))}
                 </SelectField>
               </div>
 
@@ -74,18 +165,18 @@ export function MembershipTransactionPage() {
                   value={form.paymenttype_id} 
                   onChange={(e) => setForm({...form, paymenttype_id: e.target.value})}
                 >
-                  <option value="1">Cash</option>
-                  <option value="2">GCash / Digital</option>
+                  {paymentTypes.map(p => (
+                    <option key={p.paymenttype_id} value={p.paymenttype_id}>{p.paymenttype_name}</option>
+                  ))}
                 </SelectField>
               </div>
 
-              {/* DURATION */}
               <div className="space-y-2">
                 <FieldLabel>START DATE</FieldLabel>
                 <TextField 
                   type="date" 
                   value={form.start_date} 
-                  onChange={(e) => setForm({...form, start_date: e.target.value})}
+                  onChange={(e) => setForm({...form, start_date: e.target.value})} 
                 />
               </div>
 
@@ -94,27 +185,29 @@ export function MembershipTransactionPage() {
                 <TextField 
                   type="date" 
                   value={form.end_date} 
-                  onChange={(e) => setForm({...form, end_date: e.target.value})}
+                  onChange={(e) => setForm({...form, end_date: e.target.value})} 
+                  required 
                 />
               </div>
 
-              {/* DISCOUNT */}
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <FieldLabel>DISCOUNT APPLIED</FieldLabel>
                 <SelectField 
                   value={form.discounttype_id} 
                   onChange={(e) => setForm({...form, discounttype_id: e.target.value})}
                 >
-                  <option value="1">No Discount (Standard)</option>
-                  <option value="2">Student / Senior (-₱200)</option>
-                  <option value="3">Referral Promo (-₱500)</option>
+                  {discountTypes.map(d => (
+                    <option key={d.discounttype_id} value={d.discounttype_id}>
+                      {d.discounttype_name} ({d.discounttype_fee}%)
+                    </option>
+                  ))}
                 </SelectField>
               </div>
             </div>
 
             <div className="pt-4 border-t border-white/5 flex justify-end">
-              <Button type="submit" variant="primary" className="w-full md:w-auto">
-                <ShieldCheck className="h-4 w-4 mr-2" />
+              <Button type="submit" variant="primary" className="w-full md:w-auto" disabled={loading}>
+                {loading ? <Loader2 className="mr-2 animate-spin h-4 w-4" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
                 Finalize Transaction
               </Button>
             </div>
@@ -122,7 +215,6 @@ export function MembershipTransactionPage() {
         </CardBody>
       </Card>
 
-      {/* BILLING SUMMARY SIDEBAR */}
       <div className="space-y-4">
         <Card>
           <CardHeader>
@@ -131,32 +223,31 @@ export function MembershipTransactionPage() {
           <CardBody>
             <div className="space-y-4">
               <div className="text-center py-6 rounded-2xl bg-black/40 ring-1 ring-white/5 border-b-2 border-[#CCFF00]">
-                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Amount Due</div>
-                <div className="text-4xl font-black text-white italic">₱{amountDue.toLocaleString()}</div>
+                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest text-zinc-400">Amount Due</div>
+                <div className="text-4xl font-black text-white italic">₱{amountDue.toFixed(2)}</div>
               </div>
               
-              <div className="space-y-3 px-1">
-                <div className="flex justify-between text-xs text-zinc-400">
-                  <span>Base Membership:</span>
-                  <span className="text-zinc-100 font-bold">₱{baseFee.toLocaleString()}</span>
+              <div className="space-y-3 px-1 text-xs">
+                <div className="flex justify-between text-zinc-400">
+                  <span>Base Plan:</span>
+                  <span className="text-zinc-100 font-bold">₱{baseFee.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-xs text-red-400">
-                  <span className="flex items-center gap-1"><TicketPercent className="h-3 w-3" /> Discount:</span>
-                  <span>- ₱{discount.toLocaleString()}</span>
+                <div className="flex justify-between text-red-400">
+                  <span className="flex items-center gap-1">
+                    <TicketPercent className="h-3 w-3" /> 
+                    Discount ({discountPercentage}%):
+                  </span>
+                  <span>- ₱{discountInPesos.toFixed(2)}</span>
                 </div>
                 <div className="h-px bg-white/5 my-2" />
-                <div className="flex justify-between text-[10px] text-[#CCFF00] font-black uppercase tracking-tighter">
+                <div className="flex justify-between text-[#CCFF00] font-black uppercase tracking-tighter">
                   <span>Grand Total:</span>
-                  <span className="text-sm">₱{amountDue.toLocaleString()}</span>
+                  <span className="text-sm">₱{amountDue.toFixed(2)}</span>
                 </div>
               </div>
             </div>
           </CardBody>
         </Card>
-
-        <div className="rounded-2xl bg-zinc-900/50 p-4 border border-white/5 text-[10px] text-zinc-500 italic leading-relaxed">
-          <strong>Note:</strong> Finalizing this will update <u>tbl_membership</u> status and generate a transaction receipt in <u>tbl_transaction</u>.
-        </div>
       </div>
     </div>
   )
