@@ -5,6 +5,10 @@ import { Card, CardBody, CardHeader } from '../components/Card.jsx'
 import { FieldLabel, SelectField, TextField } from '../components/Field.jsx'
 import { supabase } from '../lib/supabase'
 
+function roundMoney(value) {
+  return Math.round((Number(value) + Number.EPSILON) * 100) / 100
+}
+
 export function MembershipTransactionPage() {
   const [fetching, setFetching] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -94,11 +98,11 @@ export function MembershipTransactionPage() {
 
   const selectedDiscount = filteredDiscountTypes.find(d => d.discounttype_id?.toString() === form.discounttype_id)
   
-  const baseFee = selectedType ? parseFloat(selectedType.membership_fee) : 0
+  const baseFee = roundMoney(selectedType ? parseFloat(selectedType.membership_fee) : 0)
   const discountPercentage = selectedDiscount ? parseFloat(selectedDiscount.discounttype_fee) : 0
   
-  const discountInPesos = (baseFee * discountPercentage) / 100
-  const amountDue = Math.max(0, baseFee - discountInPesos)
+  const discountInPesos = roundMoney((baseFee * discountPercentage) / 100)
+  const amountDue = roundMoney(Math.max(0, baseFee - discountInPesos))
 
   const handleFinalize = async (e) => {
     e.preventDefault()
