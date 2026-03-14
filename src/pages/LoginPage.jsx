@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Lock, Shield, User, Loader2 } from 'lucide-react'
+import { Lock, User, Loader2 } from 'lucide-react'
 import { BackgroundFX } from '../components/BackgroundFX.jsx'
 import { Button } from '../components/Button.jsx'
 import { FieldLabel, TextField } from '../components/Field.jsx'
@@ -54,17 +54,11 @@ export function LoginPage({ onLoginSuccess }) {
         <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center px-4 py-10">
           <div className="grid w-full grid-cols-1 gap-10 md:grid-cols-2 md:items-center">
             
-            <div className="hidden md:block">
-              <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold tracking-widest text-zinc-400 ring-1 ring-white/10">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#CCFF00] shadow-[0_0_25px_rgba(204,255,0,0.35)]" />
-                STAFF ACCESS
-              </div>
-              <h1 className="mt-5 text-5xl font-black tracking-tight uppercase">
-                LVLUP <span className="text-[#CCFF00]">Fitness</span>
+            <div className="mx-auto hidden w-full max-w-md md:block">
+              <h1 className="font-black tracking-tight uppercase leading-[0.95]">
+                <span className="block text-5xl text-[#CCFF00] lg:text-6xl">LVLUP FITNESS GYM</span>
+                <span className="mt-2 block text-3xl text-zinc-100 lg:text-4xl">MANAGEMENT SYSTEM</span>
               </h1>
-              <p className="mt-4 max-w-md text-sm leading-6 text-zinc-400 font-medium">
-                Authorized Personnel Only. Please log in with your credentials to manage transactions and member data.
-              </p>
             </div>
 
             <div className="mx-auto w-full max-w-md">
@@ -72,11 +66,7 @@ export function LoginPage({ onLoginSuccess }) {
                 <div className="relative p-7">
                   <div className="flex items-start justify-between gap-4 mb-6">
                     <div>
-                      <div className="inline-flex items-center gap-2 rounded-full bg-black/25 px-3 py-1 text-[11px] font-semibold tracking-widest text-zinc-400 ring-1 ring-white/10">
-                        <Shield className="h-3.5 w-3.5 text-[#CCFF00]" />
-                        SECURE CONSOLE
-                      </div>
-                      <div className="mt-4 text-2xl font-black tracking-tight uppercase italic">Staff Login</div>
+                      <div className="mt-1 text-2xl font-black tracking-tight uppercase italic">Staff Login</div>
                     </div>
                   </div>
 
@@ -108,8 +98,8 @@ export function LoginPage({ onLoginSuccess }) {
 
                     <div className="pt-2">
                       <Button className="w-full" variant="primary" type="submit" disabled={loading}>
-                        {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Shield className="h-4 w-4 mr-2" />}
-                        {loading ? 'Verifying...' : 'Enter Console'}
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        {loading ? 'Verifying...' : 'Log-in'}
                       </Button>
                     </div>
                   </form>
