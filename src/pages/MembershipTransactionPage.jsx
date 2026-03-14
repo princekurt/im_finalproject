@@ -71,10 +71,29 @@ export function MembershipTransactionPage() {
 
   const handleFinalize = async (e) => {
     e.preventDefault()
-    if (!form.customer_id || !form.end_date) return alert("Please select a member and end date.")
+    if (!form.customer_id || !form.end_date) return alert("Please select a customer and end date.")
     setLoading(true)
 
     try {
+      const { data: existingMemberships, error: membershipCheckError } = await supabase
+        .from('tbl_membership')
+        .select('membership_id, start_date, end_date')
+        .eq('customer_id', parseInt(form.customer_id))
+
+      if (membershipCheckError) throw membershipCheckError
+
+      const requestedStart = new Date(`${form.start_date}T00:00:00`)
+      const requestedEnd = new Date(`${form.end_date}T23:59:59`)
+      const overlaps = (existingMemberships || []).some((m) => {
+        const start = new Date(`${m.start_date}T00:00:00`)
+        const end = new Date(`${m.end_date}T23:59:59`)
+        return requestedStart <= end && requestedEnd >= start
+      })
+
+      if (overlaps) {
+        throw new Error('This customer already has a membership period overlapping the selected dates.')
+      }
+
       const { data: txn, error: txnErr } = await supabase.from('tbl_transaction').insert([{
         receptionist_id: parseInt(currentStaffId),
         paymenttype_id: parseInt(form.paymenttype_id),
@@ -129,14 +148,14 @@ export function MembershipTransactionPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               
               <div className="md:col-span-2 space-y-2">
-                <FieldLabel>SELECT MEMBER</FieldLabel>
+                <FieldLabel>SELECT CUSTOMER</FieldLabel>
                 <div className="relative">
                   <SelectField 
                     value={form.customer_id} 
                     onChange={(e) => setForm({...form, customer_id: e.target.value})}
                     required
                   >
-                    <option value="">Choose a member...</option>
+                    <option value="">Choose a customer...</option>
                     {customers.map(c => (
                       <option key={c.customer_id} value={c.customer_id}>{c.full_name}</option>
                     ))}

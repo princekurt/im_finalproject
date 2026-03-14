@@ -61,7 +61,7 @@ export function RegistrationPage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-sm font-black tracking-tight text-zinc-100 uppercase italic">Customer Intake</div>
+              <div className="text-sm font-black tracking-tight text-zinc-100 uppercase italic">Customer Registration</div>
               <div className="mt-1 text-xs text-zinc-500">
                 Create a new profile in <strong>tbl_customer</strong>.
               </div>

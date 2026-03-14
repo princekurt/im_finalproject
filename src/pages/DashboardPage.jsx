@@ -101,21 +101,18 @@ export function DashboardPage({ onOpenMember }) {
           value={stats.total}
           hint="All records in database."
           icon={<Users className="h-5 w-5" />}
-          accent="lime"
         />
         <StatCard
           label="ACTIVE NOW"
           value={stats.active}
           hint="Valid membership as of today."
           icon={<Dumbbell className="h-5 w-5" />}
-          accent="lime"
         />
         <StatCard
           label="EXPIRING SOON"
           value={stats.expiringSoon}
           hint="Expiring within 7 days."
           icon={<AlarmClock className="h-5 w-5" />}
-          accent="orange"
         />
       </div>
 

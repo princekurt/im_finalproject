@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Zap, UserSearch, Receipt, Loader2, ShieldCheck } from 'lucide-react'
+import { Zap, UserSearch, Receipt, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react'
 import { Button } from '../components/Button.jsx'
 import { Card, CardBody, CardHeader } from '../components/Card.jsx'
 import { FieldLabel, SelectField, TextField } from '../components/Field.jsx'
@@ -10,6 +10,8 @@ export function WalkInPage() {
   const [customers, setCustomers] = useState([]) 
   const [walkinTypes, setWalkinTypes] = useState([]) 
   const [paymentTypes, setPaymentTypes] = useState([]) 
+  const [activeMembership, setActiveMembership] = useState(null)
+  const [checkingMembership, setCheckingMembership] = useState(false)
   
   // Get current logged-in staff info
   const staffName = localStorage.getItem('staff_name') || 'Staff'
@@ -45,6 +47,58 @@ export function WalkInPage() {
     fetchData()
   }, [])
 
+  useEffect(() => {
+    const checkMembership = async () => {
+      if (!form.customer_id) {
+        setActiveMembership(null)
+        return
+      }
+
+      setCheckingMembership(true)
+      try {
+        const { data, error } = await supabase
+          .from('tbl_membership')
+          .select(`
+            membership_id,
+            start_date,
+            end_date,
+            tbl_membershiptype (membershiptype_name)
+          `)
+          .eq('customer_id', parseInt(form.customer_id))
+          .order('end_date', { ascending: false })
+
+        if (error) throw error
+
+        const now = new Date()
+        const active = (data || []).find((m) => {
+          const start = new Date(`${m.start_date}T00:00:00`)
+          const end = new Date(`${m.end_date}T23:59:59`)
+          return now >= start && now <= end
+        })
+
+        if (active) {
+          setActiveMembership({
+            membership_id: active.membership_id,
+            start_date: active.start_date,
+            end_date: active.end_date,
+            membershiptype_name: Array.isArray(active.tbl_membershiptype)
+              ? active.tbl_membershiptype[0]?.membershiptype_name
+              : active.tbl_membershiptype?.membershiptype_name,
+          })
+        } else {
+          setActiveMembership(null)
+        }
+      } catch (err) {
+        console.error('Membership status check failed:', err)
+        setActiveMembership(null)
+      } finally {
+        setCheckingMembership(false)
+      }
+    }
+
+    checkMembership()
+  }, [form.customer_id])
+
   const selectedType = walkinTypes.find(t => t.walkintype_id.toString() === form.walkintype_id.toString())
   const totalAmount = selectedType ? selectedType.walkin_fee : 0
 
@@ -52,6 +106,9 @@ export function WalkInPage() {
     e.preventDefault()
     if (!form.customer_id) return alert("Please select a customer!")
     if (!currentStaffId) return alert("No active staff session. Please re-login.")
+    if (activeMembership) {
+      return alert('Walk-in is disabled for this customer because an active membership already exists.')
+    }
     
     setLoading(true)
 
@@ -108,7 +165,7 @@ export function WalkInPage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-sm font-black tracking-tight text-zinc-100 uppercase italic">Walk-In Entry</div>
+              <div className="text-sm font-black tracking-tight text-zinc-100 uppercase italic">Walk-In</div>
               <div className="mt-1 text-[10px] text-zinc-500 font-bold flex items-center gap-1 uppercase">
                 <ShieldCheck className="h-3 w-3 text-[#CCFF00]" />
                 Operator: {staffName}
@@ -141,6 +198,19 @@ export function WalkInPage() {
                   </select>
                   <UserSearch className="absolute right-4 top-3.5 h-4 w-4 text-zinc-500 pointer-events-none" />
                 </div>
+                {checkingMembership ? (
+                  <div className="text-[11px] text-zinc-500">Checking membership status...</div>
+                ) : activeMembership ? (
+                  <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                    <div className="flex items-center gap-2 font-semibold uppercase tracking-wide">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Walk-in disabled for active members
+                    </div>
+                    <div className="mt-1 text-[11px]">
+                      Active plan: {activeMembership.membershiptype_name || 'Membership'} ({activeMembership.start_date} to {activeMembership.end_date})
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -191,7 +261,7 @@ export function WalkInPage() {
             </div>
 
             <div className="pt-4 border-t border-white/5 flex justify-end">
-              <Button type="submit" variant="primary" className="w-full md:w-auto" disabled={loading}>
+              <Button type="submit" variant="primary" className="w-full md:w-auto" disabled={loading || Boolean(activeMembership)}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Receipt className="h-4 w-4 mr-2" />}
                 Confirm Walk-In
               </Button>

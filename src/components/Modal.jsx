@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 
-export function Modal({ open, title, onClose, children }) {
+export function Modal({ open, title, subtitle = 'LVLUP Fitness - Member Profile', onClose, children }) {
   useEffect(() => {
     if (!open) return
     const onKeyDown = (e) => {
@@ -25,7 +25,7 @@ export function Modal({ open, title, onClose, children }) {
               <div className="truncate text-sm font-black tracking-widest text-zinc-100">
                 {title}
               </div>
-              <div className="text-xs text-zinc-500">LVLUP Fitness • Member Profile</div>
+              <div className="text-xs text-zinc-500">{subtitle}</div>
             </div>
             <button
               className="rounded-xl bg-white/0 px-3 py-2 text-xs font-semibold tracking-widest text-zinc-300 ring-1 ring-white/10 hover:bg-white/5 active:bg-white/10"
@@ -41,4 +41,3 @@ export function Modal({ open, title, onClose, children }) {
     </div>
   )
 }
-

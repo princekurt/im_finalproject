@@ -7,19 +7,21 @@ import {
   X, 
   Zap, 
   CreditCard,
+  History,
   ShieldAlert // Icon for Admin section
 } from 'lucide-react'
 
 // Organized Navigation into groups
 const CORE_NAV = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { key: 'members', label: 'Members List', icon: Users },
-  { key: 'registration', label: 'Customer Intake', icon: UserPlus },
+  { key: 'members', label: 'Customer List', icon: Users },
+  { key: 'registration', label: 'Customer Registration', icon: UserPlus },
 ]
 
 const TRANSACTION_NAV = [
-  { key: 'walkin', label: 'Walk-in Entry', icon: Zap },
-  { key: 'membership_txn', label: 'Membership Txn', icon: CreditCard },
+  { key: 'walkin', label: 'Walk-in', icon: Zap },
+  { key: 'membership_txn', label: 'Membership', icon: CreditCard },
+  { key: 'transaction_history', label: 'History', icon: History },
 ]
 
 // NEW: Admin Navigation Group
@@ -54,11 +56,11 @@ function NavItem({ item, activeKey, onNavigate, setOpen }) {
       className={[
         'w-full group flex items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold tracking-wide transition',
         active
-          ? 'bg-[#CCFF00]/10 text-[#CCFF00] ring-1 ring-[#CCFF00]/20'
+          ? 'bg-[#CCFF00] text-black ring-1 ring-[#CCFF00]/30 shadow-[0_8px_20px_rgba(255,212,0,0.28)]'
           : 'text-zinc-200 hover:bg-white/5 active:bg-white/10',
       ].join(' ')}
     >
-      <Icon className={active ? 'h-4 w-4' : 'h-4 w-4 text-zinc-400 group-hover:text-zinc-200'} />
+      <Icon className={active ? 'h-4 w-4 text-black' : 'h-4 w-4 text-zinc-400 group-hover:text-zinc-200'} />
       <span className="flex-1">{item.label}</span>
     </button>
   )
@@ -125,18 +127,6 @@ export function Sidebar({ activeKey, onNavigate, onLogout, open, setOpen }) {
               <LogOut className="h-4 w-4 text-zinc-400" />
               Logout
             </button>
-          </div>
-        </div>
-
-        <div className="mt-auto px-5 pb-6">
-          <div className="rounded-2xl bg-black/30 ring-1 ring-white/10 p-4">
-            <div className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">System Status</div>
-            <div className="mt-2 text-sm font-bold text-[#CCFF00]">
-              Operational
-            </div>
-            <div className="mt-1 text-xs text-zinc-500">
-              v1.0.4-industrial
-            </div>
           </div>
         </div>
       </div>

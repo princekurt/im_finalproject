@@ -2,6 +2,38 @@
 
 :root {
   color-scheme: dark;
+  --app-bg: #0a0a0a;
+  --app-fg: #e7e7e7;
+  --surface-0: #0a0a0a;
+  --surface-1: #161616;
+  --surface-2: #111111;
+  --ink-1: #f5f5f5;
+  --ink-2: #d4d4d8;
+  --ink-3: #a1a1aa;
+  --ink-4: #71717a;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-soft: rgba(255, 255, 255, 0.08);
+  --accent: #ffd400;
+  --accent-strong: #ffd400;
+  --accent-soft: rgba(255, 212, 0, 0.16);
+}
+
+:root.theme-light {
+  color-scheme: light;
+  --app-bg: #f3f5f8;
+  --app-fg: #0f172a;
+  --surface-0: #f3f5f8;
+  --surface-1: #ffffff;
+  --surface-2: #eef2f7;
+  --ink-1: #0f172a;
+  --ink-2: #1f2937;
+  --ink-3: #475569;
+  --ink-4: #64748b;
+  --line: rgba(15, 23, 42, 0.12);
+  --line-soft: rgba(15, 23, 42, 0.08);
+  --accent: #ffd400;
+  --accent-strong: #ffd400;
+  --accent-soft: rgba(255, 212, 0, 0.16);
 }
 
 html,
@@ -12,12 +44,188 @@ body,
 
 body {
   margin: 0;
-  background: #0a0a0a;
-  color: #e7e7e7;
+  background: var(--app-bg);
+  color: var(--app-fg);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
     Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  transition: background-color 180ms ease, color 180ms ease;
 }
 
 ::selection {
   background: rgba(204, 255, 0, 0.25);
+}
+
+/* Force existing hardcoded neon classes to the app accent in both themes. */
+:root .text-\[\#CCFF00\] {
+  color: var(--accent) !important;
+}
+
+:root .bg-\[\#CCFF00\] {
+  background-color: var(--accent-strong) !important;
+}
+
+:root .bg-\[\#CCFF00\]\/10,
+:root .bg-\[\#CCFF00\]\/12,
+:root .bg-\[\#CCFF00\]\/15,
+:root .bg-\[\#CCFF00\]\/18 {
+  background-color: var(--accent-soft) !important;
+}
+
+:root .ring-\[\#CCFF00\]\/20,
+:root .ring-\[\#CCFF00\]\/25,
+:root .focus\:ring-\[\#CCFF00\]\/35:focus,
+:root .focus\:ring-\[\#CCFF00\]:focus {
+  --tw-ring-color: rgba(255, 212, 0, 0.32) !important;
+}
+
+/* Global utility remap for light mode without rewriting all page classes. */
+:root.theme-light .bg-\[\#0A0A0A\] {
+  background-color: var(--surface-0) !important;
+}
+
+:root.theme-light .bg-\[\#0A0A0A\]\/75 {
+  background-color: rgba(243, 245, 248, 0.82) !important;
+}
+
+:root.theme-light .supports-\[backdrop-filter\]\:bg-\[\#0A0A0A\]\/55 {
+  background-color: rgba(243, 245, 248, 0.7) !important;
+}
+
+:root.theme-light .bg-\[\#161616\],
+:root.theme-light .bg-\[\#111\] {
+  background-color: var(--surface-1) !important;
+}
+
+:root.theme-light .bg-zinc-900,
+:root.theme-light .bg-zinc-900\/50,
+:root.theme-light .bg-zinc-800 {
+  background-color: var(--surface-2) !important;
+}
+
+:root.theme-light .bg-black\/40,
+:root.theme-light .bg-black\/35,
+:root.theme-light .bg-black\/30,
+:root.theme-light .bg-black\/25 {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+:root.theme-light .bg-black\/70 {
+  background-color: rgba(15, 23, 42, 0.34) !important;
+}
+
+:root.theme-light .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+:root.theme-light .bg-white\/5 {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+
+:root.theme-light .bg-white\/0 {
+  background-color: transparent !important;
+}
+
+:root.theme-light .text-zinc-100,
+:root.theme-light .text-zinc-200,
+:root.theme-light .text-zinc-300,
+:root.theme-light .text-white {
+  color: var(--ink-1) !important;
+}
+
+:root.theme-light .text-zinc-400 {
+  color: var(--ink-3) !important;
+}
+
+:root.theme-light .text-zinc-500,
+:root.theme-light .text-zinc-600 {
+  color: var(--ink-4) !important;
+}
+
+:root.theme-light .placeholder\:text-zinc-500::placeholder {
+  color: var(--ink-4) !important;
+}
+
+:root.theme-light .text-\[\#CCFF00\] {
+  color: var(--accent) !important;
+}
+
+:root.theme-light .bg-\[\#CCFF00\] {
+  background-color: var(--accent-strong) !important;
+}
+
+:root.theme-light .bg-\[\#CCFF00\]\/10,
+:root.theme-light .bg-\[\#CCFF00\]\/12,
+:root.theme-light .bg-\[\#CCFF00\]\/15,
+:root.theme-light .bg-\[\#CCFF00\]\/18 {
+  background-color: var(--accent-soft) !important;
+}
+
+:root.theme-light .border-white\/5,
+:root.theme-light .border-white\/10,
+:root.theme-light .border-white\/20 {
+  border-color: var(--line) !important;
+}
+
+:root.theme-light .ring-white\/5,
+:root.theme-light .ring-white\/10,
+:root.theme-light .ring-white\/15 {
+  border-color: var(--line) !important;
+  --tw-ring-color: var(--line) !important;
+}
+
+:root.theme-light .ring-\[\#CCFF00\]\/20,
+:root.theme-light .ring-\[\#CCFF00\]\/25,
+:root.theme-light .focus\:ring-\[\#CCFF00\]\/35:focus,
+:root.theme-light .focus\:ring-\[\#CCFF00\]:focus {
+  --tw-ring-color: rgba(255, 212, 0, 0.32) !important;
+}
+
+:root.theme-light .divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--line-soft) !important;
+}
+
+:root.theme-light .hover\:bg-white\/5:hover {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+
+:root.theme-light .active\:bg-white\/10:active {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+:root.theme-light .hover\:bg-white\/\[0\.02\]:hover {
+  background-color: rgba(15, 23, 42, 0.03) !important;
+}
+
+:root.theme-light .active\:bg-white\/\[0\.05\]:active {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Fallback selectors for variant-prefixed classes (e.g., md:bg-...). */
+:root.theme-light [class*="bg-[#0A0A0A]"] {
+  background-color: var(--surface-0) !important;
+}
+
+:root.theme-light [class*="bg-[#0A0A0A]/75"] {
+  background-color: rgba(243, 245, 248, 0.82) !important;
+}
+
+:root.theme-light [class*="bg-[#0A0A0A]/55"] {
+  background-color: rgba(243, 245, 248, 0.7) !important;
+}
+
+:root.theme-light [class*="bg-[#161616]"],
+:root.theme-light [class*="bg-[#111]"] {
+  background-color: var(--surface-1) !important;
+}
+
+:root.theme-light [class*="border-white/5"],
+:root.theme-light [class*="border-white/10"],
+:root.theme-light [class*="border-white/20"] {
+  border-color: var(--line) !important;
+}
+
+:root.theme-light [class*="ring-white/5"],
+:root.theme-light [class*="ring-white/10"],
+:root.theme-light [class*="ring-white/15"] {
+  --tw-ring-color: var(--line) !important;
 }

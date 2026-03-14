@@ -3,9 +3,10 @@ import { Lock, User, Loader2 } from 'lucide-react'
 import { BackgroundFX } from '../components/BackgroundFX.jsx'
 import { Button } from '../components/Button.jsx'
 import { FieldLabel, TextField } from '../components/Field.jsx'
+import { ThemeToggle } from '../components/ThemeToggle.jsx'
 import { supabase } from '../lib/supabase'
 
-export function LoginPage({ onLoginSuccess }) {
+export function LoginPage({ onLoginSuccess, theme, onToggleTheme }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -51,6 +52,9 @@ export function LoginPage({ onLoginSuccess }) {
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-100">
       <div className="relative min-h-screen">
         <BackgroundFX intensity="login" />
+        <div className="absolute right-4 top-4 z-20 md:right-6 md:top-6">
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+        </div>
         <div className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-center px-4 py-10">
           <div className="grid w-full grid-cols-1 gap-10 md:grid-cols-2 md:items-center">
             
