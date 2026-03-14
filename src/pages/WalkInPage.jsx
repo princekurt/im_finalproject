@@ -4,6 +4,7 @@ import { Button } from '../components/Button.jsx'
 import { Card, CardBody, CardHeader } from '../components/Card.jsx'
 import { FieldLabel, SelectField, TextField } from '../components/Field.jsx'
 import { supabase } from '../lib/supabase'
+import { isActiveMember } from '../utils/dates.js'
 
 export function WalkInPage() {
   const [loading, setLoading] = useState(false)
@@ -69,12 +70,7 @@ export function WalkInPage() {
 
         if (error) throw error
 
-        const now = new Date()
-        const active = (data || []).find((m) => {
-          const start = new Date(`${m.start_date}T00:00:00`)
-          const end = new Date(`${m.end_date}T23:59:59`)
-          return now >= start && now <= end
-        })
+        const active = (data || []).find((m) => isActiveMember({ start_date: m.start_date, end_date: m.end_date }))
 
         if (active) {
           setActiveMembership({

@@ -5,25 +5,22 @@ import { Button } from '../components/Button.jsx'
 import { Modal } from '../components/Modal.jsx'
 import { TextField } from '../components/Field.jsx'
 import { supabase } from '../lib/supabase'
-import { formatISO } from '../utils/dates.js'
+import { formatISO, isActiveMember, parseISODate, startOfDay } from '../utils/dates.js'
 
 function firstRow(value) {
   if (Array.isArray(value)) return value[0] || null
   return value || null
 }
 
-function parseDateOnly(dateStr, endOfDay = false) {
-  if (!dateStr) return null
-  const dt = new Date(`${dateStr}T${endOfDay ? '23:59:59' : '00:00:00'}`)
-  if (Number.isNaN(dt.getTime())) return null
-  return dt
+function hasActiveMembershipRecord(record, now = new Date()) {
+  return isActiveMember({ start_date: record.start_date, end_date: record.end_date }, now)
 }
 
-function hasActiveMembershipRecord(record, now = new Date()) {
-  const start = parseDateOnly(record.start_date)
-  const end = parseDateOnly(record.end_date, true)
-  if (!start || !end) return false
-  return now >= start && now <= end
+function membershipStatus(record, now = new Date()) {
+  if (hasActiveMembershipRecord(record, now)) return 'Active'
+  const start = parseISODate(record.start_date)
+  if (start && startOfDay(now).getTime() < startOfDay(start).getTime()) return 'Upcoming'
+  return 'Ended'
 }
 
 function formatDateTime(value) {
@@ -90,7 +87,13 @@ function CustomerProfileModal({ customer, open, onClose }) {
                         <td className="px-3 py-3 text-xs text-zinc-400">{formatISO(m.start_date)}</td>
                         <td className="px-3 py-3 text-xs text-zinc-400">{formatISO(m.end_date)}</td>
                         <td className="px-3 py-3">
-                          {hasActiveMembershipRecord(m) ? <Badge tone="active">Active</Badge> : <Badge tone="expired">Ended</Badge>}
+                          {membershipStatus(m) === 'Active' ? (
+                            <Badge tone="active">Active</Badge>
+                          ) : membershipStatus(m) === 'Upcoming' ? (
+                            <Badge tone="neutral">Upcoming</Badge>
+                          ) : (
+                            <Badge tone="expired">Ended</Badge>
+                          )}
                         </td>
                       </tr>
                     ))

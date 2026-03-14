@@ -1,8 +1,20 @@
 export function parseISODate(dateStr) {
-  // dateStr should be "YYYY-MM-DD"
-  const [y, m, d] = String(dateStr).split('-').map((n) => Number(n))
-  if (!y || !m || !d) return null
-  return new Date(y, m - 1, d)
+  if (!dateStr) return null
+
+  // Supports both date-only ("YYYY-MM-DD") and datetime strings.
+  const raw = String(dateStr).trim()
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (match) {
+    const y = Number(match[1])
+    const m = Number(match[2])
+    const d = Number(match[3])
+    if (!y || !m || !d) return null
+    return new Date(y, m - 1, d)
+  }
+
+  const dt = new Date(raw)
+  if (Number.isNaN(dt.getTime())) return null
+  return dt
 }
 
 export function formatISO(dateStr) {
@@ -25,8 +37,15 @@ export function daysRemaining(endDateStr, now = new Date()) {
 }
 
 export function isActiveMember(member, now = new Date()) {
-  const remaining = daysRemaining(member?.endDate, now)
-  if (remaining == null) return false
-  return remaining >= 0
+  const start = parseISODate(member?.startDate ?? member?.start_date)
+  const end = parseISODate(member?.endDate ?? member?.end_date)
+  if (!end) return false
+
+  const today = startOfDay(now).getTime()
+  const startDay = start ? startOfDay(start).getTime() : null
+  const endDay = startOfDay(end).getTime()
+
+  if (startDay != null && today < startDay) return false
+  return today <= endDay
 }
 
