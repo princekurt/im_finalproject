@@ -9,6 +9,10 @@ function roundMoney(value) {
   return Math.round((Number(value) + Number.EPSILON) * 100) / 100
 }
 
+function roundToPeso(value) {
+  return Math.round(Number(value))
+}
+
 export function MembershipTransactionPage() {
   const [fetching, setFetching] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -101,8 +105,9 @@ export function MembershipTransactionPage() {
   const baseFee = roundMoney(selectedType ? parseFloat(selectedType.membership_fee) : 0)
   const discountPercentage = selectedDiscount ? parseFloat(selectedDiscount.discounttype_fee) : 0
   
-  const discountInPesos = roundMoney((baseFee * discountPercentage) / 100)
-  const amountDue = roundMoney(Math.max(0, baseFee - discountInPesos))
+  const rawAmountDue = baseFee - (baseFee * discountPercentage) / 100
+  const amountDue = roundMoney(Math.max(0, roundToPeso(rawAmountDue)))
+  const discountInPesos = roundMoney(baseFee - amountDue)
 
   const handleFinalize = async (e) => {
     e.preventDefault()
