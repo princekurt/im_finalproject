@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { CreditCard, UserSearch, ShieldCheck, TicketPercent, Loader2 } from 'lucide-react'
 import { Button } from '../components/Button.jsx'
 import { Card, CardBody, CardHeader } from '../components/Card.jsx'
@@ -61,7 +61,38 @@ export function MembershipTransactionPage() {
   }, [])
 
   const selectedType = membershipTypes.find(m => m.membershiptype_id?.toString() === form.membershiptype_id)
-  const selectedDiscount = discountTypes.find(d => d.discounttype_id?.toString() === form.discounttype_id)
+  const selectedTypeName = (selectedType?.membershiptype_name || '').toLowerCase()
+  const isMuayPlusStandardType = selectedTypeName.includes('muay') && selectedTypeName.includes('standard')
+  const isStandardOnlyType = selectedTypeName.includes('standard') && !selectedTypeName.includes('muay')
+
+  const filteredDiscountTypes = useMemo(() => {
+    const isMuayTag = (name = '') => name.toLowerCase().includes('muay')
+    const isNoneTag = (name = '') => name.toLowerCase().includes('none')
+
+    if (isMuayPlusStandardType) {
+      const muayOnly = discountTypes.filter((d) => isMuayTag(d.discounttype_name) || isNoneTag(d.discounttype_name))
+      return muayOnly.length > 0 ? muayOnly : discountTypes
+    }
+
+    if (isStandardOnlyType) {
+      const nonMuayOnly = discountTypes.filter((d) => !isMuayTag(d.discounttype_name))
+      return nonMuayOnly.length > 0 ? nonMuayOnly : discountTypes
+    }
+
+    return discountTypes
+  }, [discountTypes, isMuayPlusStandardType, isStandardOnlyType])
+
+  useEffect(() => {
+    if (!filteredDiscountTypes.length) return
+    const stillValid = filteredDiscountTypes.some((d) => d.discounttype_id?.toString() === form.discounttype_id?.toString())
+    if (stillValid) return
+
+    const noneOption = filteredDiscountTypes.find((d) => (d.discounttype_name || '').toLowerCase().includes('none'))
+    const fallback = noneOption || filteredDiscountTypes[0]
+    setForm((prev) => ({ ...prev, discounttype_id: fallback.discounttype_id.toString() }))
+  }, [filteredDiscountTypes, form.discounttype_id])
+
+  const selectedDiscount = filteredDiscountTypes.find(d => d.discounttype_id?.toString() === form.discounttype_id)
   
   const baseFee = selectedType ? parseFloat(selectedType.membership_fee) : 0
   const discountPercentage = selectedDiscount ? parseFloat(selectedDiscount.discounttype_fee) : 0
@@ -214,8 +245,9 @@ export function MembershipTransactionPage() {
                 <SelectField 
                   value={form.discounttype_id} 
                   onChange={(e) => setForm({...form, discounttype_id: e.target.value})}
+                  disabled={filteredDiscountTypes.length === 0}
                 >
-                  {discountTypes.map(d => (
+                  {filteredDiscountTypes.map(d => (
                     <option key={d.discounttype_id} value={d.discounttype_id}>
                       {d.discounttype_name} ({d.discounttype_fee}%)
                     </option>
