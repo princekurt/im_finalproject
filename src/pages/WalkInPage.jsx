@@ -120,7 +120,6 @@ export function WalkInPage() {
           receptionist_id: parseInt(currentStaffId),
           paymenttype_id: parseInt(form.paymenttype_id),
           discounttype_id: parseInt(form.discounttype_id),
-          transac_date: new Date().toISOString(),
           total: totalAmount,        // Changed from total_amount
           amount_due: totalAmount    // Added missing column
         }])

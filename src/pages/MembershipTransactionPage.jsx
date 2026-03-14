@@ -129,7 +129,6 @@ export function MembershipTransactionPage() {
         receptionist_id: parseInt(currentStaffId),
         paymenttype_id: parseInt(form.paymenttype_id),
         discounttype_id: parseInt(form.discounttype_id),
-        transac_date: new Date().toISOString(),
         total: baseFee,
         amount_due: amountDue
       }]).select().single()

@@ -63,7 +63,7 @@ CREATE TABLE tbl_transaction (
     transac_id SERIAL PRIMARY KEY,
     receptionist_id INT REFERENCES tbl_receptionist(receptionist_id),
     paymenttype_id INT REFERENCES tbl_paymenttype(paymenttype_id),
-    transac_date DATE,
+    transac_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total DECIMAL(10,2),
     discounttype_id INT DEFAULT NULL REFERENCES tbl_discounttype(discounttype_id),
     amount_due DECIMAL(10,2)
