@@ -35,7 +35,7 @@ export function DashboardPage({ onOpenMember }) {
 
       if (memberError) throw memberError
 
-      // 2. Fetch Today's Walk-ins from tbl_walkintransaction using time_in
+      // 2. Fetch today's walk-in count using time_in
       const startOfToday = new Date()
       startOfToday.setHours(0, 0, 0, 0)
       
@@ -99,7 +99,7 @@ export function DashboardPage({ onOpenMember }) {
         <StatCard
           label="TOTAL MEMBERS"
           value={stats.total}
-          hint="All records in database."
+          hint="All registered records."
           icon={<Users className="h-5 w-5" />}
         />
         <StatCard
@@ -174,7 +174,7 @@ export function DashboardPage({ onOpenMember }) {
           <CardBody>
             <div className="space-y-3">
               
-              {/* Daily Walk-ins Tracker - Now using tbl_walkintransaction */}
+              {/* Daily walk-in tracker */}
               <div className="rounded-2xl bg-[#CCFF00] p-5 shadow-[0_0_20px_rgba(204,255,0,0.1)]">
                 <div className="flex justify-between items-start text-black">
                   <div>

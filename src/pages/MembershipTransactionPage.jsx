@@ -121,7 +121,7 @@ export function MembershipTransactionPage() {
       alert("Membership Transaction Successful!")
       setForm(prev => ({ ...prev, customer_id: '', end_date: '' }))
     } catch (err) {
-      alert("Database Error: " + err.message)
+      alert("Transaction Error: " + err.message)
     } finally {
       setLoading(false)
     }
@@ -136,7 +136,7 @@ export function MembershipTransactionPage() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-sm font-black tracking-tight text-zinc-100 uppercase italic">Membership Transaction</div>
-              <div className="mt-1 text-xs text-zinc-500">Generating records for <strong>tbl_membership</strong> and <strong>tbl_transaction</strong>.</div>
+              <div className="mt-1 text-xs text-zinc-500">Creates a membership record and linked transaction entry.</div>
             </div>
             <div className="rounded-2xl bg-[#CCFF00]/10 p-3 ring-1 ring-[#CCFF00]/20 text-[#CCFF00]">
               <CreditCard className="h-5 w-5" />

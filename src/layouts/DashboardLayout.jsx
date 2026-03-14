@@ -10,7 +10,7 @@ const TITLES = {
   registration: { title: 'Customer Registration', sub: 'Log new members into the system.' },
   walkin: { title: 'Walk-In', sub: 'Process non-member guest access.' },
   membership_txn: { title: 'Membership', sub: 'Handle plan renewals and upgrades.' },
-  transaction_history: { title: 'Transaction History', sub: 'Supertype-subtype ledger across membership and walk-ins.' },
+  transaction_history: { title: 'Transaction History', sub: 'Unified ledger across membership and walk-in activity.' },
   manage_staff: { title: 'Staff Management', sub: 'Authorize and manage system personnel.' },
 }
 

@@ -88,12 +88,12 @@ export function TransactionHistoryPage() {
 
         let category = 'Unknown'
         let customerName = '-'
-        let detail = 'No subtype link found'
+        let detail = 'No linked detail record found'
 
         if (membershipLink && walkinLink) {
           category = 'Mixed'
           customerName = membershipCustomer?.full_name || walkinCustomer?.full_name || '-'
-          detail = 'Linked to both membership and walk-in subtypes'
+          detail = 'Linked to both membership and walk-in records'
         } else if (membershipLink) {
           category = 'Membership'
           customerName = membershipCustomer?.full_name || '-'
@@ -156,7 +156,7 @@ export function TransactionHistoryPage() {
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="text-sm font-black tracking-tight text-zinc-100 uppercase italic">Unified Transaction Ledger</div>
-              <div className="mt-1 text-xs text-zinc-500">Joined from <strong>tbl_transaction</strong> + subtype links.</div>
+              <div className="mt-1 text-xs text-zinc-500">Unified transaction timeline with linked activity records.</div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex rounded-xl bg-black/30 ring-1 ring-white/10 p-1">
